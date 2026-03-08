@@ -1,16 +1,13 @@
 /* ─────────────────────────────────────────────────────────────
    AI Implementation Scoping Tool
    Built by Roman Martins · romanmartins.com
-   Uses the Anthropic Claude API (claude-sonnet-4-6)
+   Uses the Anthropic Claude API via Vercel serverless function
 ───────────────────────────────────────────────────────────── */
 
-const MODEL = 'claude-sonnet-4-6';
-const API_URL = 'https://api.anthropic.com/v1/messages';
 const TOTAL_QUESTIONS = 3;
 
 /* ─── State ───────────────────────────────────────────────── */
 let state = {
-  apiKey: null,
   problem: '',
   questions: [],       // array of question strings (pre-generated)
   answers: [],         // array of user answer strings
@@ -19,11 +16,6 @@ let state = {
 
 /* ─── DOM refs ────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
-
-const apiGate          = $('api-gate');
-const apiKeyInput      = $('api-key-input');
-const apiKeySubmit     = $('api-key-submit');
-const apiKeyError      = $('api-key-error');
 
 const problemSection   = $('problem-section');
 const problemInput     = $('problem-input');
@@ -49,16 +41,8 @@ const restartBtn       = $('restart-btn');
 
 /* ─── Init ────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', () => {
-  // Restore API key from sessionStorage
-  const savedKey = sessionStorage.getItem('anthropic_api_key');
-  if (savedKey) {
-    state.apiKey = savedKey;
-    showProblemSection();
-  }
-
-  // Bind events
-  apiKeySubmit.addEventListener('click', handleApiKeySubmit);
-  apiKeyInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleApiKeySubmit(); });
+  problemSection.classList.remove('hidden');
+  problemInput.focus();
 
   problemSubmit.addEventListener('click', handleProblemSubmit);
 
@@ -72,26 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   restartBtn.addEventListener('click', handleRestart);
 });
 
-/* ─── Step 1: API Key ─────────────────────────────────────── */
-function handleApiKeySubmit() {
-  const key = apiKeyInput.value.trim();
-  if (!key.startsWith('sk-ant-')) {
-    apiKeyError.classList.remove('hidden');
-    return;
-  }
-  apiKeyError.classList.add('hidden');
-  state.apiKey = key;
-  sessionStorage.setItem('anthropic_api_key', key);
-  showProblemSection();
-}
-
-function showProblemSection() {
-  apiGate.classList.add('hidden');
-  problemSection.classList.remove('hidden');
-  problemInput.focus();
-}
-
-/* ─── Step 2: Problem ─────────────────────────────────────── */
+/* ─── Problem ─────────────────────────────────────────────── */
 async function handleProblemSubmit() {
   const problem = problemInput.value.trim();
   if (problem.length < 20) {
@@ -114,14 +79,10 @@ async function handleProblemSubmit() {
   }
 }
 
-/* ─── Step 3: Conversation ────────────────────────────────── */
+/* ─── Conversation ────────────────────────────────────────── */
 function startConversation() {
   conversationSection.classList.remove('hidden');
-
-  // Show the problem as first bubble
   appendBubble('ai', `**Problem received:**\n\n${state.problem}`);
-
-  // Show first question
   showNextQuestion();
 }
 
@@ -141,25 +102,19 @@ function handleAnswerSubmit() {
   const answer = answerInput.value.trim();
   if (!answer) return;
 
-  // Record answer
   state.answers.push(answer);
   answerSection.classList.add('hidden');
-
-  // Show user answer bubble
   appendBubble('user', answer);
-
   state.currentQ++;
 
   if (state.currentQ < TOTAL_QUESTIONS) {
-    // More questions
     showNextQuestion();
   } else {
-    // All done — show generate button
     generateSection.classList.remove('hidden');
   }
 }
 
-/* ─── Step 4: Generate Scope ──────────────────────────────── */
+/* ─── Generate ────────────────────────────────────────────── */
 async function handleGenerate() {
   generateSection.classList.add('hidden');
   showLoading('Generating your implementation scope...');
@@ -182,29 +137,15 @@ function showOutput(markdown) {
 }
 
 function handleCopy() {
-  const rawMarkdown = buildOutputMarkdown();
-  navigator.clipboard.writeText(rawMarkdown).then(() => {
+  const text = outputContent.innerText;
+  navigator.clipboard.writeText(text).then(() => {
     copyBtn.textContent = 'Copied!';
     setTimeout(() => { copyBtn.textContent = 'Copy'; }, 2000);
   });
 }
 
-function buildOutputMarkdown() {
-  // Reconstruct from state for clean copy
-  const qaContext = state.questions.map((q, i) =>
-    `**Q: ${q}**\nA: ${state.answers[i] || ''}`
-  ).join('\n\n');
-  return `# AI Implementation Scope\n\nProblem: ${state.problem}\n\n${qaContext}\n\n---\n\n${outputContent.innerText}`;
-}
-
 function handleRestart() {
-  state = {
-    apiKey: state.apiKey,
-    problem: '',
-    questions: [],
-    answers: [],
-    currentQ: 0,
-  };
+  state = { problem: '', questions: [], answers: [], currentQ: 0 };
 
   conversationThread.innerHTML = '';
   conversationSection.classList.add('hidden');
@@ -233,16 +174,11 @@ Example format:
 ["Question one?", "Question two?", "Question three?"]`;
 
   const response = await callClaude([
-    {
-      role: 'user',
-      content: `Business problem: ${problem}`
-    }
+    { role: 'user', content: `Business problem: ${problem}` }
   ], systemPrompt, 512);
 
-  // Extract JSON from response
-  const text = response.trim();
-  const jsonMatch = text.match(/\[[\s\S]*\]/);
-  if (!jsonMatch) throw new Error('Unexpected response format from Claude. Please try again.');
+  const jsonMatch = response.trim().match(/\[[\s\S]*\]/);
+  if (!jsonMatch) throw new Error('Unexpected response format. Please try again.');
 
   const questions = JSON.parse(jsonMatch[0]);
   if (!Array.isArray(questions) || questions.length !== TOTAL_QUESTIONS) {
@@ -320,38 +256,22 @@ Use this exact structure:
 
 Write in a professional, direct tone. Be specific — avoid generic AI buzzwords. All tables must be properly formatted markdown.`;
 
-  const messages = [
-    {
-      role: 'user',
-      content: `Business problem:\n${state.problem}\n\nDiscovery Q&A:\n${qaContext}`
-    }
-  ];
-
-  return await callClaude(messages, systemPrompt, 2048);
+  return await callClaude([
+    { role: 'user', content: `Business problem:\n${state.problem}\n\nDiscovery Q&A:\n${qaContext}` }
+  ], systemPrompt, 2048);
 }
 
-async function callClaude(messages, systemPrompt, maxTokens = 1024) {
-  const response = await fetch(API_URL, {
+async function callClaude(messages, system, max_tokens = 1024) {
+  const response = await fetch('/api/claude', {
     method: 'POST',
-    headers: {
-      'x-api-key': state.apiKey,
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      'anthropic-dangerous-direct-browser-access': 'true',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: maxTokens,
-      system: systemPrompt,
-      messages,
-    }),
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ messages, system, max_tokens }),
   });
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}));
-    if (response.status === 401) throw new Error('Invalid API key. Please reload and enter a valid Anthropic API key.');
     if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
-    throw new Error(err?.error?.message || `API error ${response.status}. Please try again.`);
+    throw new Error(err?.error ?? `Server error ${response.status}. Please try again.`);
   }
 
   const data = await response.json();

@@ -2,7 +2,7 @@
 
 > Describe a business problem. Get a structured AI implementation plan.
 
-**Live demo:** [sinkrest.github.io/ai-scoping-tool](https://sinkrest.github.io/ai-scoping-tool) &nbsp;·&nbsp; **Built with:** Claude API · Vanilla JS
+**Live demo:** [ai-scoping-tool.vercel.app](https://ai-scoping-tool.vercel.app) &nbsp;·&nbsp; **Built with:** Claude API · Vanilla JS · Vercel
 
 ---
 
@@ -22,7 +22,7 @@ Enter your Anthropic API key, describe a business problem in plain language, the
 **Phase 2 — Scoping**
 The full Q&A context is passed to Claude, which generates a structured markdown scoping document covering approach, automation candidates, effort/impact, phased rollout, risks, and metrics.
 
-No backend. No install. Runs entirely in the browser. Your API key is stored in session memory only.
+No login required. The API key is held server-side on Vercel — just open the URL and start typing.
 
 ---
 
@@ -36,19 +36,24 @@ It's also a deliberate demonstration of prompt architecture: two separate prompt
 
 ## Run It
 
-1. Get a free Anthropic API key at [console.anthropic.com/keys](https://console.anthropic.com/keys)
-2. Open `index.html` in any browser (or use the live demo link above)
-3. Enter your API key, describe your problem, answer 3 questions
+**Easiest:** Use the [live demo](https://ai-scoping-tool.vercel.app) — no setup, no API key needed.
 
-No install. No server. One file open in a browser.
-
+**Self-host on Vercel:**
 ```bash
 git clone https://github.com/sinkrest/ai-scoping-tool.git
 cd ai-scoping-tool
-open index.html
+vercel deploy
+# Add ANTHROPIC_API_KEY to your Vercel project environment variables
 ```
 
-**API cost per run:** ~$0.01–$0.03 with Claude Sonnet (3 questions + 1 scoping doc)
+**Run locally** (requires your own API key — edit `app.js` to call Anthropic directly):
+```bash
+git clone https://github.com/sinkrest/ai-scoping-tool.git
+cd ai-scoping-tool
+vercel dev   # runs the serverless function locally with your .env
+```
+
+Add `ANTHROPIC_API_KEY=sk-ant-...` to a `.env` file for local dev.
 
 ---
 

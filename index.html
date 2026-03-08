@@ -31,24 +31,6 @@
         <p class="hero-sub">Answer 3 short questions. Receive a structured scoping document you can act on.</p>
       </section>
 
-      <!-- API Key Gate -->
-      <div id="api-gate" class="card api-gate">
-        <label class="field-label" for="api-key-input">Anthropic API Key</label>
-        <p class="field-hint">Your key is stored in session memory only — never logged or transmitted beyond Anthropic's API. <a href="https://console.anthropic.com/keys" target="_blank">Get a key →</a></p>
-        <div class="api-key-row">
-          <input
-            type="password"
-            id="api-key-input"
-            class="input"
-            placeholder="sk-ant-..."
-            autocomplete="off"
-            spellcheck="false"
-          />
-          <button id="api-key-submit" class="btn btn-primary">Continue</button>
-        </div>
-        <p id="api-key-error" class="error-msg hidden">Please enter a valid Anthropic API key (starts with sk-ant-).</p>
-      </div>
-
       <!-- Problem Input -->
       <div id="problem-section" class="card hidden">
         <label class="field-label" for="problem-input">What business problem do you want to solve with AI?</label>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Implementation Scoping Tool</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+
+  <div class="app">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text">AI Scoping Tool</span>
+        </div>
+        <a href="https://romanmartins.com" target="_blank" class="byline">by Roman Martins</a>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Hero -->
+      <section class="hero">
+        <h1 class="hero-title">Describe a business problem.<br>Get an AI implementation plan.</h1>
+        <p class="hero-sub">Answer 3 short questions. Receive a structured scoping document you can act on.</p>
+      </section>
+
+      <!-- API Key Gate -->
+      <div id="api-gate" class="card api-gate">
+        <label class="field-label" for="api-key-input">Anthropic API Key</label>
+        <p class="field-hint">Your key is stored in session memory only — never logged or transmitted beyond Anthropic's API. <a href="https://console.anthropic.com/keys" target="_blank">Get a key →</a></p>
+        <div class="api-key-row">
+          <input
+            type="password"
+            id="api-key-input"
+            class="input"
+            placeholder="sk-ant-..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button id="api-key-submit" class="btn btn-primary">Continue</button>
+        </div>
+        <p id="api-key-error" class="error-msg hidden">Please enter a valid Anthropic API key (starts with sk-ant-).</p>
+      </div>
+
+      <!-- Problem Input -->
+      <div id="problem-section" class="card hidden">
+        <label class="field-label" for="problem-input">What business problem do you want to solve with AI?</label>
+        <p class="field-hint">Be specific. Describe the current situation, not the desired solution.</p>
+        <textarea
+          id="problem-input"
+          class="textarea"
+          rows="5"
+          placeholder="e.g. Our customer support team spends 3 hours per day manually reading incoming emails and routing them to the right department. We receive around 200 emails per day across 5 departments..."
+        ></textarea>
+        <div class="btn-row">
+          <button id="problem-submit" class="btn btn-primary">Start Discovery →</button>
+        </div>
+        <p id="problem-error" class="error-msg hidden">Please describe your business problem before continuing.</p>
+      </div>
+
+      <!-- Conversation -->
+      <div id="conversation-section" class="hidden">
+        <div id="conversation-thread" class="conversation-thread"></div>
+
+        <!-- Answer input -->
+        <div id="answer-section" class="card answer-card hidden">
+          <label class="field-label" id="answer-label">Your answer</label>
+          <textarea id="answer-input" class="textarea" rows="3" placeholder="Type your answer here..."></textarea>
+          <div class="btn-row">
+            <button id="answer-submit" class="btn btn-primary">Send →</button>
+          </div>
+        </div>
+
+        <!-- Generate button -->
+        <div id="generate-section" class="hidden">
+          <div class="generate-prompt">
+            <p>Discovery complete. Ready to generate your AI implementation scope.</p>
+            <button id="generate-btn" class="btn btn-generate">Generate Implementation Scope ↓</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div id="loading" class="loading hidden">
+        <div class="spinner"></div>
+        <span id="loading-text">Generating your implementation scope...</span>
+      </div>
+
+      <!-- Output -->
+      <div id="output-section" class="hidden">
+        <div class="output-header">
+          <h2 class="output-title">Implementation Scope</h2>
+          <button id="copy-btn" class="btn btn-ghost">Copy</button>
+        </div>
+        <div id="output-content" class="output-content card"></div>
+        <div class="output-footer">
+          <button id="restart-btn" class="btn btn-ghost">Start over</button>
+        </div>
+      </div>
+
+    </main>
+
+    <footer class="footer">
+      Built with <a href="https://claude.ai" target="_blank">Claude</a> ·
+      <a href="https://github.com/sinkrest/ai-scoping-tool" target="_blank">View on GitHub</a> ·
+      <a href="https://romanmartins.com" target="_blank">romanmartins.com</a>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
